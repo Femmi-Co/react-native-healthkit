@@ -9,6 +9,7 @@ import type {
   HKQuantityTypeIdentifier,
   HKSourceRevision,
   HKUnit,
+  HKWorkoutEventRaw,
   HKWorkoutRaw,
   LengthUnit,
   MetadataMapperForQuantityIdentifier,
@@ -38,18 +39,28 @@ export type GenericQueryOptions = {
   readonly to?: Date;
   readonly limit?: number;
   readonly ascending?: boolean;
-  readonly anchor?: string
+  readonly anchor?: string;
 };
+
+export interface HKWorkoutEvent
+  extends Omit<HKWorkoutEventRaw, 'dateInterval'> {
+  readonly dateInterval: {
+    readonly start: Date;
+    readonly end: Date;
+  };
+}
 
 export interface HKWorkout<
   TEnergy extends EnergyUnit = EnergyUnit,
   TDistance extends LengthUnit = LengthUnit
-> extends Omit<HKWorkoutRaw<TEnergy, TDistance>, 'endDate' | 'startDate'> {
+> extends Omit<HKWorkoutRaw<TEnergy, TDistance>, 'endDate' | 'startDate' | 'workoutEvents'> {
   readonly startDate: Date;
   readonly endDate: Date;
+  readonly workoutEvents?: readonly HKWorkoutEvent[];
 }
 
-export interface HKHeartbeatSeriesSample extends Omit<HKHeartbeatSeriesSampleRaw, 'endDate' | 'startDate'> {
+export interface HKHeartbeatSeriesSample
+  extends Omit<HKHeartbeatSeriesSampleRaw, 'endDate' | 'startDate'> {
   readonly startDate: Date;
   readonly endDate: Date;
 }
@@ -69,17 +80,28 @@ export interface HKQuantitySample<
   readonly endDate: Date;
 }
 
-export interface QueryStatisticsResponse<TIdentifier extends HKQuantityTypeIdentifier, TUnit extends UnitForIdentifier<TIdentifier> = UnitForIdentifier<TIdentifier>>
-  extends Omit<
+export interface QueryStatisticsResponse<
+  TIdentifier extends HKQuantityTypeIdentifier,
+  TUnit extends UnitForIdentifier<TIdentifier> = UnitForIdentifier<TIdentifier>
+> extends Omit<
   QueryStatisticsResponseRaw<TIdentifier, TUnit>,
   'mostRecentQuantityDateInterval'
   > {
-  readonly mostRecentQuantityDateInterval?: { readonly from: Date; readonly to: Date };
+  readonly mostRecentQuantityDateInterval?: {
+    readonly from: Date;
+    readonly to: Date;
+  };
 }
 
-export type HKCategorySampleForSaving =Omit<HKCategorySample, 'device' | 'endDate' | 'startDate' | 'uuid'>
+export type HKCategorySampleForSaving = Omit<
+HKCategorySample,
+'device' | 'endDate' | 'startDate' | 'uuid'
+>;
 
-export type HKQuantitySampleForSaving =Omit<HKQuantitySample, 'device' | 'endDate' | 'startDate' | 'uuid'>
+export type HKQuantitySampleForSaving = Omit<
+HKQuantitySample,
+'device' | 'endDate' | 'startDate' | 'uuid'
+>;
 
 export interface HKCorrelation<TIdentifier extends HKCorrelationTypeIdentifier>
   extends Omit<

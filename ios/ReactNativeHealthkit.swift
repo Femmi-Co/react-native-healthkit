@@ -642,6 +642,22 @@ class ReactNativeHealthkit: RCTEventEmitter {
                         let endDate = self._dateFormatter.string(from: workout.endDate)
                         let startDate = self._dateFormatter.string(from: workout.startDate)
 
+                        let serializedEvents: NSMutableArray = []
+                        if let actualWorkoutEvents = workout.workoutEvents {
+                            for we in actualWorkoutEvents {
+                                let interval = NSDictionary = [
+                                    "start": we.dateInterval.start,
+                                    "end": we.dateInterval.end
+                                ]
+                                let serializedEvent = NSDictionary = [
+                                    "type": we.type,
+                                    "dateInterval": interval,
+                                    "metadata": serializeMetadata(metadata: we.metadata)
+                                ]
+                                serializedEvents.add(serializedEvents)
+                            }
+                        }
+
                         let dict: NSMutableDictionary = [
                             "uuid": workout.uuid.uuidString,
                             "device": serializeDevice(_device: workout.device) as Any,
@@ -652,6 +668,7 @@ class ReactNativeHealthkit: RCTEventEmitter {
                             "workoutActivityType": workout.workoutActivityType.rawValue,
                             "startDate": startDate,
                             "endDate": endDate,
+                            "workoutEvents": serializedEvents,
                             "metadata": serializeMetadata(metadata: workout.metadata),
                             "sourceRevision": serializeSourceRevision(_sourceRevision: workout.sourceRevision) as Any
                         ]

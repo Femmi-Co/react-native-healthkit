@@ -319,6 +319,17 @@ export enum HKWorkoutActivityType {
   other = 3000,
 }
 
+export enum HKWorkoutEventType {
+  pause = 1,
+  resume = 2,
+  motionPaused = 5,
+  motionResumed = 6,
+  pauseOrResumeRequest = 8,
+  lap = 3,
+  segment = 7,
+  marker = 4,
+}
+
 export type HKGenericMetadata = {
   readonly [key: string]: HKQuantity | boolean | number | string | undefined;
   readonly HKExternalUUID?: string;
@@ -450,7 +461,7 @@ export enum HKStatisticsOptions {
   separateBySource = 'separateBySource',
 }
 
-export type QueryStatisticsResponseRaw<
+export type StatisticsResponseRaw<
   TIdentifier extends HKQuantityTypeIdentifier,
   TUnit extends UnitForIdentifier<TIdentifier>
 > = {
@@ -495,7 +506,7 @@ export enum HKCategoryValueSleepAnalysis {
   awake = 2,
   asleepCore = 3,
   asleepDeep = 4,
-  asleepREM = 5
+  asleepREM = 5,
 }
 
 export enum HKCategoryValueAppetiteChanges {
@@ -747,7 +758,7 @@ contraceptive = 'HKCategoryTypeIdentifierContraceptive',
 
 export type HKHeartbeatSeriesSampleMetadata = HKGenericMetadata & {
   readonly HKMetadataKeyAlgorithmVersion: string;
-}
+};
 
 export type MetadataMapperForCategoryIdentifier<
   T extends HKCategoryTypeIdentifier
@@ -998,7 +1009,7 @@ export type HKDevice = {
   readonly manufacturer: string; // ex: "Apple Inc."
   readonly model: string; // ex: "Watch"
   readonly softwareVersion: string; // ex: "9.0"
-  readonly udiDeviceIdentifier: string | null
+  readonly udiDeviceIdentifier: string | null;
 };
 
 export type HKSource = {
@@ -1029,9 +1040,9 @@ export type HKQuantitySampleRaw<
 };
 
 export type HKHeartbeatRaw = {
-  readonly timeSinceSeriesStart: number,
-  readonly precededByGap: boolean
-}
+  readonly timeSinceSeriesStart: number;
+  readonly precededByGap: boolean;
+};
 
 export type HKHeartbeatSeriesSampleRaw = {
   readonly uuid: string;
@@ -1041,7 +1052,7 @@ export type HKHeartbeatSeriesSampleRaw = {
   readonly heartbeats: readonly HKHeartbeatRaw[];
   readonly metadata?: HKHeartbeatSeriesSampleMetadata;
   readonly sourceRevision?: HKSourceRevision;
-}
+};
 
 export type HKQuantitySampleRawForSaving<
   TQuantityIdentifier extends HKQuantityTypeIdentifier = HKQuantityTypeIdentifier,
@@ -1057,6 +1068,15 @@ export type HKCategorySampleRawForSaving<
 HKCategorySampleRaw<TCategory>,
 'device' | 'endDate' | 'startDate' | 'uuid'
 >;
+
+export type HKWorkoutEventRaw = {
+  readonly dateInterval: {
+    readonly start: string;
+    readonly end: string;
+  };
+  readonly type: HKWorkoutEventType;
+  readonly metadata?: HKGenericMetadata;
+};
 
 export type HKWorkoutRaw<
   TEnergy extends EnergyUnit,
@@ -1078,6 +1098,7 @@ export type HKWorkoutRaw<
   >;
   readonly startDate: string;
   readonly endDate: string;
+  readonly workoutEvents?: readonly HKWorkoutEventRaw[];
   readonly metadata?: HKWorkoutMetadata;
   readonly sourceRevision?: HKSourceRevision;
 };
@@ -1121,36 +1142,40 @@ export type HKCategorySampleRaw<
 
 export type DeletedCategorySampleRaw<T extends HKCategoryTypeIdentifier> = {
   readonly uuid: string;
-  readonly metadata: MetadataMapperForCategoryIdentifier<T>
-}
+  readonly metadata: MetadataMapperForCategoryIdentifier<T>;
+};
 
 export type DeletedHeartbeatSeriesSampleRaw = {
   readonly uuid: string;
   readonly metadata: HKHeartbeatSeriesSampleMetadata;
-}
+};
 
 export type DeletedQuantitySampleRaw<T extends HKQuantityTypeIdentifier> = {
   readonly uuid: string;
-  readonly metadata: MetadataMapperForQuantityIdentifier<T>
-}
+  readonly metadata: MetadataMapperForQuantityIdentifier<T>;
+};
 
-export type QueryCategorySamplesResponseRaw<T extends HKCategoryTypeIdentifier> = {
-  readonly samples: readonly HKCategorySampleRaw<T>[],
-  readonly deletedSamples: readonly DeletedCategorySampleRaw<T>[],
-  readonly newAnchor: string
-}
+export type QueryCategorySamplesResponseRaw<
+  T extends HKCategoryTypeIdentifier
+> = {
+  readonly samples: readonly HKCategorySampleRaw<T>[];
+  readonly deletedSamples: readonly DeletedCategorySampleRaw<T>[];
+  readonly newAnchor: string;
+};
 
 export type QueryHeartbeatSeriesSamplesResponseRaw = {
-  readonly samples: readonly HKHeartbeatSeriesSampleRaw[],
-  readonly deletedSamples: readonly DeletedHeartbeatSeriesSampleRaw[],
-  readonly newAnchor: string
-}
+  readonly samples: readonly HKHeartbeatSeriesSampleRaw[];
+  readonly deletedSamples: readonly DeletedHeartbeatSeriesSampleRaw[];
+  readonly newAnchor: string;
+};
 
-export type QueryQuantitySamplesResponseRaw<T extends HKQuantityTypeIdentifier> = {
-  readonly samples: readonly HKQuantitySampleRaw<T>[],
-  readonly deletedSamples: readonly DeletedQuantitySampleRaw<T>[],
-  readonly newAnchor: string
-}
+export type QueryQuantitySamplesResponseRaw<
+  T extends HKQuantityTypeIdentifier
+> = {
+  readonly samples: readonly HKQuantitySampleRaw<T>[];
+  readonly deletedSamples: readonly DeletedQuantitySampleRaw<T>[];
+  readonly newAnchor: string;
+};
 
 export type HKCorrelationRaw<TIdentifier extends HKCorrelationTypeIdentifier> =
   {
@@ -1240,7 +1265,9 @@ type ReactNativeHealthkitTypeNative = {
     identifier: HKSampleTypeIdentifier
   ): Promise<QueryId>;
   unsubscribeQuery(queryId: QueryId): Promise<boolean>;
-  authorizationStatusFor(type: HealthkitReadAuthorization): Promise<HKAuthorizationStatus>;
+  authorizationStatusFor(
+    type: HealthkitReadAuthorization
+  ): Promise<HKAuthorizationStatus>;
   getRequestStatusForAuthorization(
     write: WritePermissions,
     read: ReadPermissions
@@ -1267,7 +1294,7 @@ type ReactNativeHealthkitTypeNative = {
   readonly deleteSamples: <TIdentifier extends HKQuantityTypeIdentifier>(
     identifier: TIdentifier,
     start: string,
-    end: string,
+    end: string
   ) => Promise<boolean>;
   readonly queryWorkoutSamples: <
     TEnergy extends EnergyUnit,
@@ -1285,7 +1312,7 @@ type ReactNativeHealthkitTypeNative = {
     from: string,
     to: string,
     limit: number,
-    ascending: boolean,
+    ascending: boolean
   ) => Promise<readonly HKCategorySampleRaw<T>[]>;
   readonly queryQuantitySamples: <
     TIdentifier extends HKQuantityTypeIdentifier,
@@ -1296,7 +1323,7 @@ type ReactNativeHealthkitTypeNative = {
     from: string,
     to: string,
     limit: number,
-    ascending: boolean,
+    ascending: boolean
   ) => Promise<readonly HKQuantitySampleRaw<TIdentifier>[]>;
   readonly queryCategorySamplesWithAnchor: <T extends HKCategoryTypeIdentifier>(
     identifier: T,
@@ -1320,7 +1347,7 @@ type ReactNativeHealthkitTypeNative = {
     from: string,
     to: string,
     limit: number,
-    ascending: boolean,
+    ascending: boolean
   ) => Promise<readonly HKHeartbeatSeriesSampleRaw[]>;
   readonly queryHeartbeatSeriesSamplesWithAnchor: (
     from: string,
