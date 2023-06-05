@@ -461,7 +461,7 @@ export enum HKStatisticsOptions {
   separateBySource = 'separateBySource',
 }
 
-export type StatisticsResponseRaw<
+export type QueryStatisticsResponseRaw<
   TIdentifier extends HKQuantityTypeIdentifier,
   TUnit extends UnitForIdentifier<TIdentifier>
 > = {
